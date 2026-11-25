@@ -29,7 +29,7 @@ export default function Home() {
         <div><p className="eyebrow">Wednesday, 25 November</p><h1>Welcome back, Praful</h1></div>
         <div className="header-actions">
           <label className="month-select"><span>November 2026</span><ChevronDown size={16} /><select aria-label="Select month"><option>November 2026</option><option>October 2026</option></select></label>
-          <button className="button primary" onClick={() => setModalOpen(true)}><Plus size={17} />Quick add</button>
+          {/* <button className="button primary" onClick={() => setModalOpen(true)}><Plus size={17} />Quick add</button> */}
         </div>
       </div>
 
