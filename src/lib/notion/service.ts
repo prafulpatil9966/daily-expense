@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { Client } from "@notionhq/client";
 import type { Transaction } from "@/types/transaction";
 import { notionMapping } from "@/lib/notion-mapping";
+import { normalizeCategoryName } from "@/lib/categories";
 
 export interface NotionStatus {
   configured: boolean;
@@ -57,7 +58,7 @@ export function mapNotionPage(page: { id: string; properties?: Record<string, un
     description,
     amount,
     date,
-    category: selectValue(categoryProperty) || richTextValue(categoryProperty) || "Miscellaneous",
+    category: normalizeCategoryName(selectValue(categoryProperty) || richTextValue(categoryProperty) || "Miscellaneous"),
     paymentMethod: selectValue(paymentProperty) || richTextValue(paymentProperty) || "Not specified",
     type: rawType === "Income" ? "Income" : "Expense",
     notes: richTextValue(notesProperty),

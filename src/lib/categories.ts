@@ -18,3 +18,16 @@ export const categories: Category[] = [
   { name: "Personal", color: "#D946EF" },
   { name: "Miscellaneous", color: "#94A3B8" },
 ];
+
+export function normalizeCategoryName(name: string): string {
+  const aliases: Record<string, string> = {
+    "Food & drink": "Food & Dining",
+    Petrol: "Transport",
+  };
+  return aliases[name] ?? name;
+}
+
+export function getCategoryColor(name: string): string {
+  const normalizedName = normalizeCategoryName(name);
+  return categories.find((category) => category.name === normalizedName)?.color ?? "#94A3B8";
+}
