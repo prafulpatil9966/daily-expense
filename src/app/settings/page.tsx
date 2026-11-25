@@ -23,6 +23,27 @@ export default function SettingsPage() {
     });
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function applyTheme() {
+      const selected = localStorage.getItem("pocket-theme") || "Light";
+      const dark = selected === "Dark" || (selected === "System" && media.matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      setTheme(selected);
+    }
+
+    applyTheme();
+    media.addEventListener("change", applyTheme);
+    return () => media.removeEventListener("change", applyTheme);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const dark = theme === "Dark" || (theme === "System" && media.matches);
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }, [theme]);
+
   function selectTheme(value: string) {
     setTheme(value);
     localStorage.setItem("pocket-theme", value);

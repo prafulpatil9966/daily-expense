@@ -7,12 +7,52 @@
   --muted: #6b7280;
   --border: #e8eaf0;
   --accent: #6366f1;
+  color-scheme: light;
 }
+
+:root[data-theme="dark"] {
+  --bg: #111827;
+  --card: #18202f;
+  --text: #f8fafc;
+  --muted: #9ca3af;
+  --border: #2d3645;
+  --accent: #818cf8;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] .sidebar,
+:root[data-theme="dark"] .mobile-header,
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .summary-card,
+:root[data-theme="dark"] .modal,
+:root[data-theme="dark"] .month-select,
+:root[data-theme="dark"] .filter-select,
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] .segmented,
+:root[data-theme="dark"] .transaction-form input,
+:root[data-theme="dark"] .transaction-form select,
+:root[data-theme="dark"] .transaction-form textarea,
+:root[data-theme="dark"] .icon-button,
+:root[data-theme="dark"] .theme-options button { background: var(--card); }
+
+:root[data-theme="dark"] .demo-banner { background: #29261b; border-color: #4a4430; color: #d8d1b5; }
+:root[data-theme="dark"] .nav-item:hover,
+:root[data-theme="dark"] .category-row:hover,
+:root[data-theme="dark"] .category-row.selected-row { background: #222c3d; }
+:root[data-theme="dark"] .segmented button.selected { background: #263247; }
+:root[data-theme="dark"] td,
+:root[data-theme="dark"] .panel-header,
+:root[data-theme="dark"] .sidebar-profile,
+:root[data-theme="dark"] .setting-row,
+:root[data-theme="dark"] .integration-state,
+:root[data-theme="dark"] .category-config span { border-color: var(--border); }
+:root[data-theme="dark"] .amount-cell,
+:root[data-theme="dark"] td strong { color: var(--text); }
 
 * { box-sizing: border-box; }
 html, body { width: 100%; margin: 0; min-height: 100%; }
 html { -webkit-text-size-adjust: 100%; }
-body { width: 100%; overflow-x: hidden; }
+body { width: 100%; overflow-x: hidden; background: var(--bg); color: var(--text); transition: background-color .2s ease, color .2s ease; }
 
 .entry-gate { position: relative; min-height: 100vh; overflow: hidden; display: grid; place-items: center; background: #f6f7fb; }
 .entry-gate::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(circle at 1px 1px, rgba(17,24,39,.055) 1px, transparent 0); background-size: 28px 28px; mask-image: linear-gradient(to bottom, transparent 8%, #000 36%, #000 64%, transparent 92%); }
