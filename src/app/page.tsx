@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownRight, ChevronDown, Plus, Search, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown, Search, Wallet } from "lucide-react";
 import { useTransactions } from "@/hooks/use-transactions";
 import { categories, getCategoryColor } from "@/lib/categories";
 import { formatINR, formatShortDate } from "@/lib/format";
@@ -11,12 +11,26 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [selectedMonth, setSelectedMonth] = useState("2026-11");
   const { transactions, demo, loading, error, refresh } = useTransactions();
 
-  const expenseTransactions = transactions.filter((item) => item.type === "Expense");
+  const monthTransactions = transactions.filter((item) => item.date.startsWith(selectedMonth));
+  const expenseTransactions = monthTransactions.filter((item) => item.type === "Expense");
   const totalExpenses = expenseTransactions.reduce((sum, item) => sum + item.amount, 0);
   const budget = 40000;
   const remaining = budget - totalExpenses;
+
+  const [year, month] = selectedMonth.split("-").map(Number);
+  const previousDate = new Date(year, month - 2, 1);
+  const previousMonth = `${previousDate.getFullYear()}-${String(previousDate.getMonth() + 1).padStart(2, "0")}`;
+  const previousExpenses = transactions
+    .filter((item) => item.type === "Expense" && item.date.startsWith(previousMonth))
+    .reduce((sum, item) => sum + item.amount, 0);
+  const expenseChange = previousExpenses > 0
+    ? ((totalExpenses - previousExpenses) / previousExpenses) * 100
+    : 0;
+  const monthLabel = new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric" })
+    .format(new Date(year, month - 1, 1));
 
   const filteredTransactions = expenseTransactions
     .filter((item) => categoryFilter === "All" || item.category === categoryFilter)
@@ -28,7 +42,7 @@ export default function Home() {
       <div className="page-header">
         <div><p className="eyebrow">Wednesday, 25 November</p><h1>Welcome back, Praful</h1></div>
         <div className="header-actions">
-          <label className="month-select"><span>November 2026</span><ChevronDown size={16} /><select aria-label="Select month"><option>November 2026</option><option>October 2026</option></select></label>
+          <label className="month-select"><span>{monthLabel}</span><ChevronDown size={16} /><select aria-label="Select month" value={selectedMonth} onChange={(event) => setSelectedMonth(event.target.value)}><option value="2026-11">November 2026</option><option value="2026-10">October 2026</option></select></label>
           {/* <button className="button primary" onClick={() => setModalOpen(true)}><Plus size={17} />Quick add</button> */}
         </div>
       </div>
@@ -38,7 +52,7 @@ export default function Home() {
       {error && <div className="demo-banner"><span>Connection</span><p>{error}</p></div>}
 
       <section className="summary-grid">
-        <article className="summary-card"><div className="summary-top"><span>Total expenses</span><div className="summary-icon indigo"><Wallet size={18} /></div></div><strong>{formatINR(totalExpenses)}</strong><p className="metric-note positive"><ArrowDownRight size={14} /> 8.4% <span>vs last month</span></p></article>
+        <article className="summary-card"><div className="summary-top"><span>Total expenses</span><div className="summary-icon indigo"><Wallet size={18} /></div></div><strong>{formatINR(totalExpenses)}</strong><p className={expenseChange <= 0 ? "metric-note positive" : "metric-note danger"}>{expenseChange <= 0 ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />} {Math.abs(expenseChange).toFixed(1)}% <span>vs last month</span></p></article>
         <article className="summary-card"><div className="summary-top"><span>Remaining budget</span><div className="summary-icon amber">₹</div></div><strong>{formatINR(remaining)}</strong><div className="progress-row"><div className="progress-track"><div style={{ width: `${Math.min((totalExpenses / budget) * 100, 100)}%` }} /></div><span>{Math.round((totalExpenses / budget) * 100)}%</span></div></article>
       </section>
 

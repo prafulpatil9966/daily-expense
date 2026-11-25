@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BarChart3, LayoutDashboard, Menu, PiggyBank, ReceiptText, Settings, WalletCards, X } from "lucide-react";
 
 const navItems = [
@@ -16,6 +16,42 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [gateClicks, setGateClicks] = useState(0);
+  const logoClicks = useRef(0);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => {
+      setUnlocked(sessionStorage.getItem("pocket-entry") === "unlocked");
+    });
+  }, []);
+
+  function handleHiddenEntry() {
+    logoClicks.current += 1;
+    setGateClicks(logoClicks.current);
+    if (logoClicks.current >= 3) {
+      sessionStorage.setItem("pocket-entry", "unlocked");
+      setUnlocked(true);
+    }
+  }
+
+  if (!unlocked) {
+    return (
+      <main className="entry-gate">
+        <div className="entry-orbit entry-orbit-one" />
+        <div className="entry-orbit entry-orbit-two" />
+        <div className="entry-content">
+          <button className={`entry-logo gate-progress-${Math.min(gateClicks, 3)}`} onClick={handleHiddenEntry} aria-label="Pocket">
+            <WalletCards size={28} strokeWidth={1.8} />
+          </button>
+          <div className="entry-brand">Pocket</div>
+          <div className="entry-dots" aria-hidden="true">
+            {[1, 2, 3].map((dot) => <span key={dot} className={gateClicks >= dot ? "filled" : ""} />)}
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="app-shell">
