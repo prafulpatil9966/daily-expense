@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { BarChart3, LayoutDashboard, Menu, PiggyBank, ReceiptText, Settings, WalletCards, X } from "lucide-react";
 
 const navItems = [
@@ -17,21 +17,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
-  const [gateClicks, setGateClicks] = useState(0);
-  const logoClicks = useRef(0);
+  const [checking, setChecking] = useState(true);
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    void Promise.resolve().then(() => {
-      setUnlocked(sessionStorage.getItem("pocket-entry") === "unlocked");
+    void Promise.resolve().then(async () => {
+      try {
+        const response = await fetch("/api/access", { cache: "no-store" });
+        const result = await response.json() as { unlocked?: boolean };
+        setUnlocked(Boolean(result.unlocked));
+      } finally {
+        setChecking(false);
+      }
     });
   }, []);
 
-  function handleHiddenEntry() {
-    logoClicks.current += 1;
-    setGateClicks(logoClicks.current);
-    if (logoClicks.current >= 3) {
-      sessionStorage.setItem("pocket-entry", "unlocked");
-      setUnlocked(true);
+  async function login(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setLoginError("");
+
+    try {
+      const response = await fetch("/api/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json() as { unlocked?: boolean; error?: string };
+      if (!response.ok) throw new Error(result.error || "Unable to sign in.");
+      setUnlocked(Boolean(result.unlocked));
+      setPassword("");
+    } catch (issue) {
+      setLoginError(issue instanceof Error ? issue.message : "Unable to sign in.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -40,15 +61,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="entry-gate">
         <div className="entry-orbit entry-orbit-one" />
         <div className="entry-orbit entry-orbit-two" />
-        <div className="entry-content">
-          <button className={`entry-logo gate-progress-${Math.min(gateClicks, 3)}`} onClick={handleHiddenEntry} aria-label="Pocket">
-            <WalletCards size={28} strokeWidth={1.8} />
-          </button>
-          <div className="entry-brand">Pocket</div>
-          <div className="entry-dots" aria-hidden="true">
-            {[1, 2, 3].map((dot) => <span key={dot} className={gateClicks >= dot ? "filled" : ""} />)}
+        <form className="entry-content entry-login" onSubmit={login}>
+          <div className="entry-login-card">
+            <div className="entry-logo-static"><WalletCards size={26} strokeWidth={1.8} /></div>
+            <div className="entry-brand">Pocket</div>
+            <p className="entry-subtitle">Your personal expense dashboard</p>
+            <label className="entry-password-label">
+              <span>Password</span>
+              <input type="password" inputMode="numeric" pattern="[0-9]*" value={password} onChange={(event) => setPassword(event.target.value.replace(/[^0-9]/g, ""))} placeholder="Enter your PIN" autoComplete="current-password" disabled={checking || submitting} autoFocus />
+            </label>
+            {loginError && <p className="entry-error" role="alert">{loginError}</p>}
+            <button className="entry-login-button" type="submit" disabled={checking || submitting || !password}>{submitting ? "Opening..." : "Open dashboard"}</button>
           </div>
-        </div>
+        </form>
       </main>
     );
   }
